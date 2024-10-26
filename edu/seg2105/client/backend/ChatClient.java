@@ -45,6 +45,7 @@ public class ChatClient extends AbstractClient
     super(host, port); //Call the superclass constructor
     this.clientUI = clientUI;
     openConnection();
+    
   }
 
   
@@ -79,6 +80,22 @@ public class ChatClient extends AbstractClient
         ("Could not send message to server.  Terminating client.");
       quit();
     }
+  }
+  
+  /**
+   * This method notice connected clients when server is closed.
+   */
+  public void connectionClosed() {
+	  clientUI.display("The connection is lost");
+		 
+  	}
+  
+  /**
+   * This method receives Exception during connection
+   */
+  public void connectionException(Exception exception) {
+	  quit();
+	  connectionClosed();
   }
   
   /**
