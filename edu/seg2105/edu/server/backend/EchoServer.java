@@ -4,6 +4,9 @@ package edu.seg2105.edu.server.backend;
 // license found at www.lloseng.com 
 
 
+import java.io.IOException;
+
+import edu.seg2105.client.common.ChatIF;
 import ocsf.server.*;
 
 /**
@@ -18,7 +21,7 @@ import ocsf.server.*;
 public class EchoServer extends AbstractServer 
 {
   //Class variables *************************************************
-  
+  ChatIF serverUI;
   /**
    * The default port to listen on.
    */
@@ -31,14 +34,33 @@ public class EchoServer extends AbstractServer
    *
    * @param port The port number to connect on.
    */
-  public EchoServer(int port) 
+  public EchoServer(int port, ChatIF ui) 
   {
     super(port);
+    serverUI = ui;
   }
 
   
   //Instance methods ************************************************
   
+  /**
+   * This method handles all data coming from the UI            
+   *
+   * @param message The message from the UI.    
+   */
+  public void handleMessageFromServerUI(String message)
+  {
+    try
+    {
+      sendToAllClients("SERVER MSG> " + message);
+    }
+    catch(Exception e)
+    {
+      serverUI.display
+        ("Could not send message to clients.");
+    }
+  }
+
   /**
    * This method handles any messages received from the client.
    *
@@ -92,13 +114,18 @@ public class EchoServer extends AbstractServer
   @Override
 	synchronized protected void clientDisconnected(
 		ConnectionToClient client) {
-      System.out.println("A client has diconnected");
+      
+      serverUI.display("A client has diconnected");
       
     }
+}
   
   
   //Class methods ***************************************************
   
+  /*
+   * 
+   */
   /**
    * This method is responsible for the creation of 
    * the server instance (there is no UI in this phase).
@@ -106,6 +133,8 @@ public class EchoServer extends AbstractServer
    * @param args[0] The port number to listen on.  Defaults to 5555 
    *          if no argument is entered.
    */
+
+   /* 
   public static void main(String[] args) 
   {
     int port = 0; //Port to listen on
@@ -131,4 +160,5 @@ public class EchoServer extends AbstractServer
     }
   }
 }
+  */
 //End of EchoServer class

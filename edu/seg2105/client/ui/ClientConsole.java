@@ -80,13 +80,77 @@ public class ClientConsole implements ChatIF
   {
     try
     {
-
       String message;
 
       while (true) 
       {
         message = fromConsole.nextLine();
-        client.handleMessageFromClientUI(message);
+        if(message.startsWith("#")){
+          switch(message){
+            case "#quit": 
+              client.quit();
+              break;
+            case "#logoff": 
+              if (client.isConnected()) {
+                client.disconnect();
+              } 
+              else {
+                display("You are already logged off.");
+              }
+              break;
+            case "#sethost":
+              if(client.isConnected()){
+                display("You cannot set host while still connected");
+              }
+              else{
+                display("Enter a host name");
+                try{client.setHost(fromConsole.nextLine());
+                }
+                catch(Exception e){
+                  display("Problem occured when setting host");
+                }
+              }
+              break;
+            case "#setport":
+            if(client.isConnected()){
+              display("You cannot set port while still connected");
+            }
+            else{
+              display("Enter a port number");
+              try{
+                client.setPort(Integer.parseInt(fromConsole.nextLine()));
+              }
+              catch(Exception e){
+                display("Problem occured when setting port");
+              }
+            }
+            break;
+            case "#login":
+              if(client.isConnected()){
+                display("You are already logged in");
+              }
+              else{
+                try{
+                  client.openConnection();
+                }
+                catch(Exception e){
+                  display("Login failed.");
+                }
+              }
+              break;
+            case "#gethost":
+              display("Host name: " + client.getHost());
+              break;
+            case "#getport":
+              display("Port number: " + client.getPort());
+              break;
+            default: 
+              display("Invalid command");
+              break;
+          }
+        }else{
+          client.handleMessageFromClientUI(message);
+        }
       }
     } 
     catch (Exception ex) 

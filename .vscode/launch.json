@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "ServerConsole",
+            "request": "launch",
+            "mainClass": "edu.seg2105.client.ui.ServerConsole",
+            "projectName": "simpleChat"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

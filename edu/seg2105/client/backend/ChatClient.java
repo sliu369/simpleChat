@@ -72,7 +72,8 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-        sendToServer(message);
+      
+      sendToServer(message);
     }
     catch(IOException e)
     {
@@ -84,16 +85,24 @@ public class ChatClient extends AbstractClient
   
   @Override
     protected void connectionClosed() {
-        // This method is called when the connection is gracefully closed
-        clientUI.display("Connection closed by the server.");
-        System.exit(0); // Exit the client
+        clientUI.display("Connection closed.");
     }
   
     @Override
     protected void connectionException(Exception exception) {
-        // This method is called when an exception occurs in the connection
-        clientUI.display("The server has shut down or the connection was lost: ");
-        quit(); // Call quit to close the connection and exit the client
+        clientUI.display("The server has shut down or the connection was lost.");
+    }
+
+    /**
+     * This method differs from quit(), it only exits the system if error is detected.
+     */
+    public void disconnect(){
+      try{
+        closeConnection();
+      }catch(IOException e){
+        clientUI.display("Unable to logoff, terminating the program");
+        System.exit(0);
+      }
     }
   
   /**
