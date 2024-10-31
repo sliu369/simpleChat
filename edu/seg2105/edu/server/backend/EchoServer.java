@@ -5,6 +5,7 @@ package edu.seg2105.edu.server.backend;
 
 
 import java.io.IOException;
+import java.net.*;
 
 import edu.seg2105.client.common.ChatIF;
 import ocsf.server.*;
@@ -42,7 +43,7 @@ public class EchoServer extends AbstractServer
 
   
   //Instance methods ************************************************
-  
+
   /**
    * This method handles all data coming from the UI            
    *
@@ -52,7 +53,7 @@ public class EchoServer extends AbstractServer
   {
     try
     {
-      sendToAllClients("SERVER MSG> " + message);
+      sendToAllClients("SERVER MSG: " + message);
     }
     catch(Exception e)
     {
@@ -67,11 +68,36 @@ public class EchoServer extends AbstractServer
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
-  public void handleMessageFromClient
-    (Object msg, ConnectionToClient client)
+  public void handleMessageFromClient(Object msg, ConnectionToClient client)
   {
-    System.out.println("Message received: " + msg + " from " + client);
-    this.sendToAllClients(msg);
+    String id;
+    try {
+      
+      if(msg.toString().startsWith("#login")) {
+        if(client.getInfo("id") != null) {
+          client.sendToClient("You are already logged in, closing connection.");
+          client.close();
+        }
+        else{
+          id = msg.toString().substring(7, msg.toString().indexOf('>')) + ">";
+          client.setInfo("id", id);
+          System.out.println(id + " has connected");
+          client.sendToClient("Login successful");
+          sendToAllClients("SERVER MSG: " + id + " has connected");
+        }
+      }
+      else {
+        id = client.getInfo("id").toString();
+        System.out.println("Message received: " + msg + " from " + id);
+        this.sendToAllClients(id + ": " + msg);
+      }
+    } catch (IOException e) {
+      try {
+        client.close();
+      } catch (IOException ex) {
+        System.out.println("Error closing client connection");
+      }
+    }
   }
     
   /**
@@ -90,8 +116,7 @@ public class EchoServer extends AbstractServer
    */
   protected void serverStopped()
   {
-    System.out.println
-      ("Server has stopped listening for connections.");
+    serverUI.display("Server has stopped listening for connections.");
   }
 
   /**
@@ -101,7 +126,7 @@ public class EchoServer extends AbstractServer
 	 */
   @Override
 	protected void clientConnected(ConnectionToClient client) {
-    System.out.println("A client has connected.");
+    System.out.println(client.getInfo("id")+" client has connected.");
   }
 
   /**
@@ -114,11 +139,57 @@ public class EchoServer extends AbstractServer
   @Override
 	synchronized protected void clientDisconnected(
 		ConnectionToClient client) {
-      
-      serverUI.display("A client has diconnected");
-      
+      serverUI.display(client.getInfo("id") + " has disconnected");
+      sendToAllClients("SERVER MSG: " + client.getInfo("id") + " has disconnected");
     }
+
+  /**
+	 * Hook method called each time a client encounters an error.
+	 * The default implementation does nothing. The method
+	 * may be overridden by subclasses but should remains synchronized.
+	 *
+	 * @param client the connection with the client.
+	 */
+  @Override
+	synchronized protected void clientException(ConnectionToClient client, Throwable exception) {
+      serverUI.display(client.getInfo("id") + " client has encountered an error");
+      serverUI.display("Now trying to close the client connection");
+      try {
+          client.close(); //close the client connection if there is an error
+      } catch (IOException e) {
+          System.out.println("Error closing client connection");
+      }
+  }
+
+  /**
+   * This methecks if the server is fully closed
+   * @return true if the server has been closed with the close() method, false otherwise
+   */
+  public boolean isClosed() {
+    try {
+        // If we can create a new server socket, then the current one must be closed
+        ServerSocket testSocket = new ServerSocket(getPort());
+        testSocket.close();
+        return true;
+    } catch (IOException e) {
+        // If we can't create a server socket, there must be one that already exists
+        return false;
+    }
+  }
+  
+/**
+	 * Hook method called when the server is clased.
+	 * The default implementation does nothing. This method may be
+	 * overriden by subclasses. When the server is closed while still
+	 * listening, serverStopped() will also be called.
+	 */
+	protected void serverClosed() {
+    serverUI.display("Server has been closed");
+  }
+
 }
+  
+  
   
   
   //Class methods ***************************************************
